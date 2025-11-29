@@ -629,20 +629,47 @@ document.addEventListener("DOMContentLoaded", () => {
   // Copy activity link to clipboard
   function copyActivityLink(activityName, button) {
     const url = window.location.href;
-    navigator.clipboard.writeText(url).then(() => {
-      // Show success feedback
-      button.classList.add('copied');
-      button.textContent = '✓';
-      showMessage(`Link copied! Share "${activityName}" with your friends.`, 'success');
-      
-      // Reset button after 2 seconds
-      setTimeout(() => {
-        button.classList.remove('copied');
-        button.textContent = '🔗';
-      }, 2000);
-    }).catch(() => {
+    
+    // Use clipboard API if available, otherwise fall back to execCommand
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(() => {
+        showCopySuccess(activityName, button);
+      }).catch(() => {
+        fallbackCopyToClipboard(url, activityName, button);
+      });
+    } else {
+      fallbackCopyToClipboard(url, activityName, button);
+    }
+  }
+
+  // Fallback copy method for non-HTTPS environments
+  function fallbackCopyToClipboard(text, activityName, button) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-9999px';
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      showCopySuccess(activityName, button);
+    } catch (err) {
       showMessage('Failed to copy link. Please try again.', 'error');
-    });
+    }
+    document.body.removeChild(textArea);
+  }
+
+  // Show success feedback for copy action
+  function showCopySuccess(activityName, button) {
+    button.classList.add('copied');
+    button.textContent = '✓';
+    showMessage(`Link copied! Share "${activityName}" with your friends.`, 'success');
+    
+    // Reset button after 2 seconds
+    setTimeout(() => {
+      button.classList.remove('copied');
+      button.textContent = '🔗';
+    }, 2000);
   }
 
   // Event listeners for search and filter
