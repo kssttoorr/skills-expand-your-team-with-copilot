@@ -2,7 +2,6 @@
 MongoDB database configuration and setup for Mergington High School API
 """
 
-import os
 from argon2 import PasswordHasher
 
 # Use mongomock for testing if MongoDB is not available
